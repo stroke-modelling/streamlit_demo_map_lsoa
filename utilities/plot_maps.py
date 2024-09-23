@@ -10,9 +10,7 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from utilities.maps import convert_shapely_polys_into_xy
 
-from stroke_maps.utils import find_multiindex_column_names
-from stroke_maps.geo import _load_geometry_stroke_units, check_scenario_level
-from stroke_maps.catchment import Catchment
+import stroke_maps.load_data
 
 
 def create_stroke_team_markers(df_units=None):
@@ -37,19 +35,16 @@ def create_stroke_team_markers(df_units=None):
 
     # Add stroke team markers.
     if df_units is None:
-        catchment = Catchment()
-        df_units = catchment.get_unit_services()
+        df_units = stroke_maps.load_data.stroke_unit_region_lookup()
     else:
         pass
     # Build geometry:
-    df_units = check_scenario_level(df_units)
-    gdf_points_units = _load_geometry_stroke_units(df_units)
+    gdf_points_units = stroke_maps.load_data.stroke_unit_coordinates()
 
     # # Convert to British National Grid.
     # The geometry column should be BNG on import, so just overwrite
     # the longitude and latitude columns that are by default long/lat.
-    col_geo = find_multiindex_column_names(
-        gdf_points_units, property=['geometry'])
+    col_geo = 'geometry'
     # gdf_points_units = gdf_points_units.set_crs(
     #     'EPSG:27700', allow_override=True)
 
@@ -61,8 +56,7 @@ def create_stroke_team_markers(df_units=None):
     # Set everything to the IVT marker:
     markers = np.full(len(gdf_points_units), 'circle', dtype=object)
     # Update MT units:
-    col_use_mt = find_multiindex_column_names(
-        gdf_points_units, property=['use_mt'])
+    col_use_mt = 'use_mt'
     mask_mt = (gdf_points_units[col_use_mt] == 1)
     markers[mask_mt] = 'square'
     # Store in the DataFrame:

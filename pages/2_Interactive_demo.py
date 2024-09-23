@@ -16,11 +16,8 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 from utilities.maps import convert_shapely_polys_into_xy
 
-from stroke_maps.utils import find_multiindex_column_names
-from stroke_maps.geo import _load_geometry_stroke_units, check_scenario_level
-from stroke_maps.catchment import Catchment
-
 # Custom functions:
+import stroke_maps.load_data
 import utilities.maps as maps
 import utilities.plot_maps as plot_maps
 import utilities.container_inputs as inputs
@@ -51,8 +48,7 @@ df_travel_times.index.name = 'lsoa'
 # #################################
 
 # User inputs for which hospitals to pick:
-catchment = Catchment()
-df_units = catchment.get_unit_services()
+df_units = stroke_maps.load_data.stroke_unit_region_lookup()
 
 # Limit to England:
 df_units = df_units.loc[~df_units['icb'].isna()].copy()

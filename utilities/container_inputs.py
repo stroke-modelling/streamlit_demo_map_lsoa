@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt  # for colour maps
 import cmasher as cmr  # for additional colour maps
 from importlib_resources import files
 
-from stroke_maps.catchment import Catchment  # for unit services
+import stroke_maps.load_data  # for unit services
 
 
-def select_stroke_unit_services(use_msu=True):
+def select_stroke_unit_services():
     df_unit_services, df_unit_services_full, cols_use = (
-        import_stroke_unit_services(use_msu))
+        import_stroke_unit_services())
 
     # Display and store any changes from the user:
     df_unit_services = st.data_editor(
@@ -28,10 +28,9 @@ def select_stroke_unit_services(use_msu=True):
     return df_unit_services, df_unit_services_full
 
 
-def import_stroke_unit_services(use_msu=True):
-    # Set up stroke unit services (IVT, MT, MSU).
-    catchment = Catchment()
-    df_unit_services = catchment.get_unit_services()
+def import_stroke_unit_services():
+    # Set up stroke unit services (IVT, MT).
+    df_unit_services = stroke_maps.load_data.stroke_unit_region_lookup()
     # Remove Wales:
     df_unit_services = df_unit_services.loc[df_unit_services['region_type'] != 'LHB'].copy()
     df_unit_services_full = df_unit_services.copy()
@@ -40,26 +39,18 @@ def import_stroke_unit_services(use_msu=True):
         'stroke_team',
         'use_ivt',
         'use_mt',
-        # 'use_msu',
         # 'transfer_unit_postcode',  # to add back in later if stroke-maps replaces geography_processing class
         # 'region',
         # 'icb',
         'isdn'
     ]
-    if use_msu:
-        cols_to_keep.append('use_msu')
     df_unit_services = df_unit_services[cols_to_keep]
     # Change 1/0 columns to bool for formatting:
     cols_use = ['use_ivt', 'use_mt']
-    if use_msu:
-        cols_use.append('use_msu')
     df_unit_services[cols_use] = df_unit_services[cols_use].astype(bool)
     # Sort by ISDN name for nicer display:
     df_unit_services = df_unit_services.sort_values('isdn')
 
-    # Update James Cook University Hospital to have MSU by default:
-    if 'use_msu' in df_unit_services.columns:
-        df_unit_services.at['TS43BW', 'use_msu'] = True
     return df_unit_services, df_unit_services_full, cols_use
 
 
